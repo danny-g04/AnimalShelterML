@@ -3,3 +3,4 @@ venv/
 EDA_Help/
 __pycache__/
 *.pyc
+res/train_clean.csv
