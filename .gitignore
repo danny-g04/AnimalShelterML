@@ -1,2 +1,5 @@
 .venv/
 venv/
+EDA_Help/
+__pycache__/
+*.pyc

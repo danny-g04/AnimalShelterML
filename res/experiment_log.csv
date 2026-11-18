@@ -1,0 +1,13 @@
+date,who,model,target,features,cv,accuracy,balanced_accuracy,f1_macro,notes
+2026-11-17 22:28,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,first baseline
+2026-11-17 22:28,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.47,0.464,0.35,first baseline
+2026-11-17 22:32,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,removed 'sex' column
+2026-11-17 22:32,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.469,0.463,0.349,removed 'sex' column
+2026-11-17 22:34,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,removed 'fixed' column
+2026-11-17 22:35,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.383,0.395,0.309,removed 'fixed' column
+2026-11-17 22:35,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,removed 'breed_main' column
+2026-11-17 22:35,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.47,0.465,0.344,removed 'breed_main' column
+2026-11-17 22:37,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,removed 'color_main' column
+2026-11-17 22:37,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main","StratifiedKFold(5), 80/20 split, random_state=42",0.453,0.475,0.334,removed 'color_main' column
+2026-11-17 22:44,Kevin,dummy,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.403,0.2,0.115,removed class weight
+2026-11-17 22:44,Kevin,logreg,OutcomeType (5 class),"age_days, is_dog, has_name, is_mix, multi_color, sex, fixed, breed_main, color_main","StratifiedKFold(5), 80/20 split, random_state=42",0.637,0.386,0.393,removed class weight

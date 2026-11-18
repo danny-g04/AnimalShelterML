@@ -6,60 +6,29 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.dummy import DummyClassifier
 from sklearn.model_selection import GroupShuffleSplit, StratifiedGroupKFold, cross_validate
+from sklearn.model_selection import train_test_split, StratifiedKFold
+import os
+from datetime import datetime
 
-# Get the age of the animal in total days
-def age_days(s):
-    if pd.isna(s): return np.nan
+# DO NOT FORGET - Log update code
+WHO = "Unknown"
+NOTES = "Forgot to set log settings :( )"
+LOG_FILE = "res/experiment_log.csv"
 
-    n, unit = s.split()[:2]
-    mult = {
-        "day":1,
-        "week":7,
-        "month":30,
-        "year":365
-    } [unit.rstrip("s")]
+# ---- New: read the cleaned file made by data_cleaning.py (run that first) ----
+df = pd.read_csv("res/train_clean.csv")
 
-    return int(n) * mult
+# all 5 outcome classes
+y = df["OutcomeType"]
+X = df.drop(columns="OutcomeType")
 
-df = pd.read_csv("res/train.csv")
+# binary cols go in with the numeric ones, they just get scaled
+num_cols = ["age_days", "is_dog", "has_name", "is_mix", "multi_color"]
+cat_cols = ["sex", "fixed", "breed_main", "color_main"]
 
-df["at_risk"] = df["OutcomeType"].isin(["Euthanasia", "Died"]).astype(int)
-# print(df["at_risk"].mean())              # base rate, ~.065
-# print(df["AnimalID"].duplicated().sum()) # number of repeat animals, there are none
-
-groups = df["AnimalID"]
-y = df["at_risk"]
-
-df["age_days"] = df["AgeuponOutcome"].apply(age_days)
-dt = pd.to_datetime(df["DateTime"])
-
-df["hour"] = dt.dt.hour
-df["weekday"] = dt.dt.weekday
-df["month"] = dt.dt.month
-
-df["has_name"] = df["Name"].notna().astype(int)
-df["is_mix"] = df["Breed"].str.contains("Mix|\"").astype(int)
-df["color_primary"] = df["Color"].str.split("/").str[0]
-
-# Some do not have a known sex, and they are left as "Unknown"
-
-num_cols = ["age_days", "hour", "weekday", "month", "has_name", "is_mix"]
-cat_cols = ["AnimalType", "SexuponOutcome", "Breed", "color_primary"]
-X = df[num_cols + cat_cols]
-
-#Exclude the Outcome columns to prevent data leakage
-
-#Group split by animal
-gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-train_idx, test_idx = next(gss.split(X, y, groups))
-X_train = X.iloc[train_idx]
-y_train = y.iloc[train_idx]
-g_train = groups.iloc[train_idx]
-
-X_test = X.iloc[test_idx]
-y_test = y.iloc[test_idx]
-
-assert set(groups.iloc[train_idx]).isdisjoint(groups.iloc[test_idx])
+# stratify keeps the outcome proportions the same in train and test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, stratify=y, test_size=0.2, random_state=42)
 
 numeric = Pipeline([
     ("impute", SimpleImputer(strategy="median")),
@@ -72,17 +41,34 @@ pre = ColumnTransformer([
     ("cat", categorical, cat_cols) ])
 pipe = Pipeline([
     ("pre", pre),
-    ("model", LogisticRegression(class_weight="balanced", max_iter=1000)) ])
+    ("model", LogisticRegression(class_weight='balanced', max_iter=1000)) ])
 
-cv = StratifiedGroupKFold(n_splits=5, shuffle=True)
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 scoring = {
-    "pr_auc": "average_precision",
-    "roc_auc": "roc_auc",
-    "f1": "f1"
+    "accuracy": "accuracy",
+    "balanced_accuracy": "balanced_accuracy",
+    "f1_macro": "f1_macro"
 }
 
 for name, model in [
     ("dummy", DummyClassifier(strategy="prior")),
     ("logreg", pipe)]:
-    res = cross_validate(model, X_train, y_train, groups = g_train,
-                         cv=cv, scoring=scoring)
+
+    res = cross_validate(model, X_train, y_train, cv=cv, scoring=scoring)
+    print(name, {k: round(float(v.mean()), 3) for k, v in res.items() if k.startswith("test_")})
+
+    # ---- Experiment log: one row per model per run, appended to res/experiment_log.csv ----
+    log_row = pd.DataFrame([{
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "who": WHO,
+        "model": name,
+        "target": "OutcomeType (5 class)",
+        "features": ", ".join(num_cols + cat_cols),
+        "cv": "StratifiedKFold(5), 80/20 split, random_state=42",
+        "accuracy": round(float(res["test_accuracy"].mean()), 3),
+        "balanced_accuracy": round(float(res["test_balanced_accuracy"].mean()), 3),
+        "f1_macro": round(float(res["test_f1_macro"].mean()), 3),
+        "notes": NOTES,
+    }])
+    log_row.to_csv(LOG_FILE, mode="a", header=not os.path.exists(LOG_FILE), index=False)

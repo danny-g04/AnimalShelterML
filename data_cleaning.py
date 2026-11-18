@@ -5,7 +5,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-df = pd.read_csv("EDA_Help/Animal_Shelter_Project/train.csv.gz")
+# df = pd.read_csv("EDA_Help/Animal_Shelter_Project/train.csv.gz")
+df = pd.read_csv("res/train.csv")
 print(df.shape)
 print(df.columns)
 print(df.dtypes)
@@ -58,3 +59,4 @@ outcome_df = df["OutcomeType"]
 input_train, input_test, output_train, output_test = train_test_split(
     feature_df, outcome_df, stratify= outcome_df, test_size=.2, random_state= 1)
 
+df.to_csv("res/train_clean.csv", index=False)
